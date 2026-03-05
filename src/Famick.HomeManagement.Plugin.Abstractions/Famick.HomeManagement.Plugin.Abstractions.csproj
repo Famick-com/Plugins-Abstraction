@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PackageId>Famick.HomeManagement.Plugin.Abstractions</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Famick</Authors>
+    <Description>Plugin interface contracts for Famick Home Management. Defines IPlugin, IProductLookupPlugin, and IStoreIntegrationPlugin interfaces for building product lookup and store integration plugins.</Description>
+    <RepositoryUrl>https://github.com/Famick-com/Plugins-Abstraction</RepositoryUrl>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+</Project>
