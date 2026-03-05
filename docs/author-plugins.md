@@ -5,6 +5,7 @@ This guide explains how to create product lookup plugins for the Famick Home Man
 ## Table of Contents
 
 - [Overview](#overview)
+- [Prerequisites](#prerequisites)
 - [Quick Start](#quick-start)
 - [IPlugin Interface](#iplugin-interface)
 - [IProductLookupPlugin Interface](#iproductlookupplugin-interface)
@@ -51,6 +52,83 @@ Phase 2 (sequential, in config.json order):
   2. OFF enrichment       →  Finds matching barcode, enriches USDA result with image
   3. Your plugin          →  Finds matching barcode, enriches with regional data
 ```
+
+---
+
+## Prerequisites
+
+Before you begin, you need to configure the GitHub Packages NuGet feed to access the `Famick.HomeManagement.Plugin.Abstractions` package.
+
+### 1. Create a GitHub Personal Access Token
+
+You need a GitHub PAT with the `read:packages` scope:
+
+1. Go to [GitHub Settings > Developer settings > Personal access tokens](https://github.com/settings/tokens)
+2. Generate a new token (classic) with the **`read:packages`** scope
+3. Copy the token
+
+Or if you use the [GitHub CLI](https://cli.github.com/):
+
+```bash
+gh auth refresh -h github.com -s read:packages
+gh auth token  # prints your token
+```
+
+### 2. Add the Famick NuGet Feed
+
+Create a `NuGet.config` at your solution root:
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <packageSources>
+    <clear />
+    <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
+    <add key="github-famick" value="https://nuget.pkg.github.com/Famick-com/index.json" />
+  </packageSources>
+</configuration>
+```
+
+Then configure credentials at the user level (so they are **not** committed to source control):
+
+```bash
+dotnet nuget update source github-famick \
+  --username YOUR_GITHUB_USERNAME \
+  --password YOUR_GITHUB_PAT \
+  --store-password-in-clear-text
+```
+
+> **Important**: Never commit credentials to your `NuGet.config`. The `--store-password-in-clear-text` flag stores them in your user-level NuGet config (`~/.nuget/NuGet/NuGet.Config` on macOS/Linux, `%APPDATA%\NuGet\NuGet.Config` on Windows).
+
+### 3. Verify the Feed Works
+
+```bash
+dotnet nuget list source
+# Should show github-famick as an enabled source
+
+dotnet new classlib -n TestPlugin -f net10.0
+cd TestPlugin
+dotnet add package Famick.HomeManagement.Plugin.Abstractions --version 1.0.0
+# Should restore successfully
+```
+
+### CI/CD Setup (GitHub Actions)
+
+For GitHub Actions, the default `GITHUB_TOKEN` cannot access packages from other repositories. You need a PAT stored as a repository secret:
+
+1. Create a PAT with `read:packages` scope (see step 1)
+2. Add it as a repository secret named `PACKAGES_TOKEN`:
+   ```bash
+   gh secret set PACKAGES_TOKEN --body "YOUR_PAT_HERE" --repo your-org/your-plugin
+   ```
+3. In your workflow, inject credentials before `dotnet restore`:
+   ```yaml
+   - name: Configure GitHub Packages auth
+     env:
+       NUGET_TOKEN: ${{ secrets.PACKAGES_TOKEN }}
+     run: |
+       sed -i "s|</packageSources>|</packageSources><packageSourceCredentials><github-famick><add key=\"Username\" value=\"Famick-com\" /><add key=\"ClearTextPassword\" value=\"${NUGET_TOKEN}\" /></github-famick></packageSourceCredentials>|" NuGet.config
+   ```
 
 ---
 
@@ -420,14 +498,15 @@ services:
 
 | Step | Action |
 |------|--------|
-| 1 | Create a .NET class library targeting `net10.0` |
-| 2 | Reference `Famick.HomeManagement.Plugin.Abstractions` NuGet package |
-| 3 | Implement `IProductLookupPlugin` with `LookupAsync` and `EnrichPipelineAsync` |
-| 4 | Provide `PluginAttribution` if using external data |
-| 5 | Set `AttributionMarkdown` on each `ProductLookupResult` in `LookupAsync` |
-| 6 | Merge attribution in `EnrichPipelineAsync` when enriching existing results |
-| 7 | Handle both `Barcode` and `Name` search types in `LookupAsync` |
-| 8 | Use `FindMatchingResult` in `EnrichPipelineAsync` to enrich existing results instead of duplicating |
-| 9 | Build the DLL and place it in the `plugins/` folder |
-| 10 | Add an entry to `plugins/config.json` with `"builtin": false` and `"assembly"` pointing to your DLL |
-| 11 | Restart the application |
+| 1 | Configure the [GitHub Packages NuGet feed](#prerequisites) |
+| 2 | Create a .NET class library targeting `net10.0` |
+| 3 | Add `<PackageReference Include="Famick.HomeManagement.Plugin.Abstractions" Version="1.0.0" />` |
+| 4 | Implement `IProductLookupPlugin` with `LookupAsync` and `EnrichPipelineAsync` |
+| 5 | Provide `PluginAttribution` if using external data |
+| 6 | Set `AttributionMarkdown` on each `ProductLookupResult` in `LookupAsync` |
+| 7 | Merge attribution in `EnrichPipelineAsync` when enriching existing results |
+| 8 | Handle both `Barcode` and `Name` search types in `LookupAsync` |
+| 9 | Use `FindMatchingResult` in `EnrichPipelineAsync` to enrich existing results instead of duplicating |
+| 10 | Build the DLL and place it in the `plugins/` folder |
+| 11 | Add an entry to `plugins/config.json` with `"builtin": false` and `"assembly"` pointing to your DLL |
+| 12 | Restart the application |
