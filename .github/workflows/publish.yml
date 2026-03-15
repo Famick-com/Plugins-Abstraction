@@ -10,7 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     environment: nuget
     permissions:
-      packages: write
       contents: read
       id-token: write
 
@@ -36,8 +35,5 @@ jobs:
     - name: Pack
       run: dotnet pack --no-build -c Release -o ./nupkg /p:Version=${{ steps.version.outputs.VERSION }}
 
-    - name: Push to GitHub Packages
-      run: dotnet nuget push ./nupkg/*.nupkg --api-key ${{ secrets.GH_TOKEN }} --source "https://nuget.pkg.github.com/Famick-com/index.json" --skip-duplicate
-
-    - name: Push to NuGet.org (Trusted Publishing)
+    - name: Push to NuGet.org
       run: dotnet nuget push ./nupkg/*.nupkg --source "https://api.nuget.org/v3/index.json" --skip-duplicate
