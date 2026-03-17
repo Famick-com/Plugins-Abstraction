@@ -244,9 +244,19 @@ public class ProductLookupPipelineContext
                     // Has valid check digit - strip leading 0 and check digit
                     return digits[1..12];
                 }
-                // No valid check digit - might be Kroger format (padded, no check)
-                // Strip leading 0 and last digit
-                return digits[1..12];
+                // No valid EAN-13 check digit.
+                // Kroger sometimes sends check digit, sometimes doesn't.
+                // Strip leading '0' to get 12 digits, then test if last digit is a UPC-A check digit.
+                var twelve = digits[1..];
+                if (HasValidCheckDigit(twelve, isEan: false))
+                {
+                    // Last digit IS the check digit — core is first 11 of the 12
+                    return twelve[..11];
+                }
+
+                // Last digit is NOT a check digit — it's part of the core barcode.
+                // Take rightmost 11 digits of the original 13 (strips leading zero-padding).
+                return digits[2..];
 
             case 14:
                 // GTIN-14 - not convertible to UPC
