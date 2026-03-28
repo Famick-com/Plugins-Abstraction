@@ -1,0 +1,38 @@
+{
+  "plugins": [
+    {
+      "id": "your-plugin-id",
+      "enabled": true,
+      "builtin": false,
+      "displayName": "your-plugin-name",
+      "type": "MyCompany.Plugins.Plugin, MyCompany.Plugins.PluginAssembly",
+      "config": {
+        "clientId": "<client id>",
+        "clientSecret": "<client secret>",
+        "scope": "product.compact"
+      }
+    },
+    {
+      "id": "usda",
+      "enabled": true,
+      "builtin": false,
+      "displayName": "USDA FoodData Central",
+      "type": "MyCompany.Plugins.NutritionPlugin, MyCompany.Plugins.NutritionPluginAssembly",
+      "config": {
+        "apiKey": "<api key>",
+        "baseUrl": "https://api.nal.usda.gov/fdc/v1/",
+        "defaultMaxResults": 20
+      }
+    },
+    {
+      "id": "openfoodfacts",
+      "enabled": true,
+      "builtin": false,
+      "displayName": "Open Food Facts",
+      "type": "MyCompany.Plugins.NutritionPlugin, MyCompany.Plugins.NutritionPluginAssembly",
+      "config": {
+        "baseUrl": "https://world.openfoodfacts.org"
+      }
+    }
+  ]
+}

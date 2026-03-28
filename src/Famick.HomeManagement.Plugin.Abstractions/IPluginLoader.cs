@@ -1,3 +1,5 @@
+using Famick.HomeManagement.Plugin.Abstractions;
+
 namespace Famick.HomeManagement.Core.Interfaces.Plugins;
 
 /// <summary>

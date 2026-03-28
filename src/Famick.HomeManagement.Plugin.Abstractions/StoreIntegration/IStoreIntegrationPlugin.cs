@@ -1,4 +1,5 @@
-namespace Famick.HomeManagement.Core.Interfaces.Plugins;
+
+namespace Famick.HomeManagement.Plugin.Abstractions.StoreIntegration;
 
 /// <summary>
 /// Interface for store integration plugins that connect to external store APIs
@@ -114,7 +115,7 @@ public interface IStoreIntegrationPlugin : IPlugin
     Task<StoreProductResult?> LookupProductByBarcodeAsync(
         string? accessToken,
         string storeLocationId,
-        string barcode,
+        Barcode barcode,
         CancellationToken ct = default);
 
     #endregion

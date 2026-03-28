@@ -1,4 +1,4 @@
-namespace Famick.HomeManagement.Core.Interfaces.Plugins;
+namespace Famick.HomeManagement.Plugin.Abstractions.StoreIntegration;
 
 /// <summary>
 /// Describes the capabilities supported by a store integration plugin.
@@ -31,6 +31,16 @@ public class StoreIntegrationCapabilities
     /// Can read user's current shopping cart
     /// </summary>
     public bool CanReadShoppingCart { get; set; }
+
+    /// <summary>
+    /// Can remove from a user's shopping cart
+    /// </summary>
+    public bool CanRemoveFromShoppingCart { get; set; }
+
+    /// <summary>
+    /// Can update an item in the user's shopping cart
+    /// </summary>
+    public bool CanUpdateShoppingCart { get; set; }
 
     /// <summary>
     /// Can download product images for local storage

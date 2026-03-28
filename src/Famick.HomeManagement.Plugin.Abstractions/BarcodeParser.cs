@@ -1,5 +1,4 @@
 using System.Text.RegularExpressions;
-using Famick.HomeManagement.Core.Interfaces.Plugins;
 
 namespace Famick.HomeManagement.Plugin.Abstractions;
 
@@ -31,9 +30,10 @@ public static class BarcodeParser
             6 or 7 or 8 => ParseShortBarcode(digits),
             11 or 12 => ParseUpcA(digits),
             13 => ParseEan13(digits),
+            14 => ParseGtin14(digits),
             _ => throw new FormatException(
                 $"Cannot determine barcode type for {digits.Length}-digit input. " +
-                "Expected 6-8 (UPC-E/EAN-8), 11-12 (UPC-A), or 13 (EAN-13) digits.")
+                "Expected 6-8 (UPC-E/EAN-8), 11-12 (UPC-A), 13 (EAN-13), or 14 (GTIN-14) digits.")
         };
     }
 
@@ -59,11 +59,11 @@ public static class BarcodeParser
         // 6 digits → UPC-E without check digit
         // 7 digits → UPC-E with check digit, or EAN-8 without check digit
         // 8 digits → EAN-8 with check digit, or UPC-E with check digit (disambiguate via check digit validation)
-        if (digits.Length == 8 && ProductLookupPipelineContext.HasValidCheckDigit(digits, isEan: true))
+        if (digits.Length == 8 && HasValidCheckDigit(digits, isEan: true))
         {
             return new Barcode
             {
-                Data = digits,
+                Data = digits[..^1],
                 Type = BarcodeType.Ean8,
                 CheckDigit = digits[^1] - '0'
             };
@@ -79,13 +79,13 @@ public static class BarcodeParser
             {
                 // 8 digits but not valid EAN-8 → treat as UPC-E with check
                 check = digits[^1] - '0';
-                data = digits;
+                data = digits[..^1];
             }
             else if (digits.Length == 7)
             {
                 // Could be UPC-E with check digit
                 check = digits[^1] - '0';
-                data = digits;
+                data = digits[..^1];
             }
 
             return new Barcode
@@ -102,11 +102,11 @@ public static class BarcodeParser
 
     private static Barcode ParseUpcA(string digits)
     {
-        if (digits.Length == 12 && ProductLookupPipelineContext.HasValidCheckDigit(digits, isEan: false))
+        if (digits.Length == 12 && HasValidCheckDigit(digits, isEan: false))
         {
             return new Barcode
             {
-                Data = digits,
+                Data = digits[..^1],
                 Type = BarcodeType.UpcA,
                 CheckDigit = digits[^1] - '0'
             };
@@ -130,18 +130,21 @@ public static class BarcodeParser
             return ParseUsEan13AsUpcA(digits);
         }
 
-        int? check = null;
-
-        if (ProductLookupPipelineContext.HasValidCheckDigit(digits, isEan: true))
+        if (HasValidCheckDigit(digits, isEan: true))
         {
-            check = digits[^1] - '0';
+            return new Barcode
+            {
+                Data = digits[..^1],
+                Type = BarcodeType.Ean13,
+                CheckDigit = digits[^1] - '0'
+            };
         }
 
         return new Barcode
         {
             Data = digits,
             Type = BarcodeType.Ean13,
-            CheckDigit = check
+            CheckDigit = null
         };
     }
 
@@ -165,17 +168,24 @@ public static class BarcodeParser
         string core;
         int checkDigit;
 
-        if (digits[0] == '0' && digits[1] == '0')
+        // First, check if it's a valid EAN-13 (works for all "0"-prefixed barcodes)
+        if (HasValidCheckDigit(digits, isEan: true))
         {
-            // First two digits are "00" — likely a left-padded barcode.
+            // Valid EAN-13: strip leading '0' and check digit → 11-digit UPC-A core
+            core = digits[1..12];
+            checkDigit = digits[12] - '0';
+        }
+        else if (digits[0] == '0' && digits[1] == '0')
+        {
+            // "00"-prefixed without valid EAN-13 check — Kroger left-padded format.
             // Check if positions 3–12 (0-indexed: [2..12], 10 digits) calculate
-            // a check digit that matches the last digit.
+            // a UPC check digit that matches the last digit.
             var innerTen = digits[2..12];
-            var calculatedCheck = ProductLookupPipelineContext.CalculateCheckDigit(innerTen);
+            var calculatedCheck = CalculateCheckDigit(innerTen);
 
             if (calculatedCheck == digits[12])
             {
-                // Last digit IS a valid check digit for the inner 10 digits.
+                // Last digit IS a valid UPC check digit for the inner 10 digits.
                 // Structure: 0 + 11-digit UPC-A data + check digit
                 core = digits[1..12];
                 checkDigit = digits[12] - '0';
@@ -185,23 +195,15 @@ public static class BarcodeParser
                 // No embedded check digit — right 11 digits are the core.
                 // Structure: 00 + 11-digit core
                 core = digits[2..];
-                checkDigit = ProductLookupPipelineContext.CalculateCheckDigit(core) - '0';
+                checkDigit = CalculateCheckDigit(core) - '0';
             }
         }
         else
         {
-            // Starts with "0" followed by non-zero — standard US EAN-13.
-            if (ProductLookupPipelineContext.HasValidCheckDigit(digits, isEan: true))
-            {
-                core = digits[1..12];
-                checkDigit = digits[12] - '0';
-            }
-            else
-            {
-                // No valid EAN-13 check digit — treat right 11 as core.
-                core = digits[2..];
-                checkDigit = ProductLookupPipelineContext.CalculateCheckDigit(core) - '0';
-            }
+            // No valid EAN-13 check digit and not "00"-prefixed.
+            // Treat right 11 digits as core.
+            core = digits[2..];
+            checkDigit = CalculateCheckDigit(core) - '0';
         }
 
         return new Barcode
@@ -211,4 +213,86 @@ public static class BarcodeParser
             CheckDigit = checkDigit
         };
     }
+
+    private static Barcode ParseGtin14(string digits)
+    {
+        var indicator = digits[0] - '0';
+
+        // GTIN-14 structure: [indicator(1)] + [EAN-13 data(12)] + [GTIN-14 check(1)]
+        // Extract the 12 inner digits and append the correct EAN-13 check digit.
+        var innerData = digits[1..13];
+        var ean13Check = CalculateCheckDigit(innerData, isEan: true);
+        var innerEan13 = innerData + ean13Check;
+
+        // Delegate to ParseEan13 which handles US product → UPC-A conversion.
+        var barcode = ParseEan13(innerEan13);
+        barcode.PackagingIndicator = indicator == 0 ? null : indicator;
+        return barcode;
+    }
+
+    /// <summary>
+    /// Validates if the last digit of a barcode is a valid check digit.
+    /// </summary>
+    /// <param name="barcode">The barcode to validate</param>
+    /// <param name="isEan">True for EAN/GTIN algorithm, false for UPC-A algorithm</param>
+    /// <returns>True if the last digit is a valid check digit</returns>
+    public static bool HasValidCheckDigit(string barcode, bool isEan)
+    {
+        if (barcode.Length < 2)
+            return false;
+
+        var checkDigit = barcode[^1] - '0';
+        var data = barcode[..^1];
+        var sum = 0;
+
+        for (var i = 0; i < data.Length; i++)
+        {
+            var digit = data[i] - '0';
+            if (isEan)
+            {
+                // EAN/GTIN: odd positions (0-indexed) × 1, even positions × 3
+                sum += i % 2 == 0 ? digit : digit * 3;
+            }
+            else
+            {
+                // UPC-A: odd positions (0-indexed) × 3, even positions × 1
+                sum += i % 2 == 0 ? digit * 3 : digit;
+            }
+        }
+
+        var expectedCheck = (10 - (sum % 10)) % 10;
+        return checkDigit == expectedCheck;
+    }
+
+    /// <summary>
+    /// Calculates the UPC/EAN check digit for a given set of digits.
+    /// Uses the standard GTIN check digit algorithm (also known as Luhn mod 10).
+    /// </summary>
+    /// <param name="digits">The barcode digits without check digit (11 digits for UPC, 12 for EAN-13)</param>
+    /// <returns>The calculated check digit character</returns>
+    public static char CalculateCheckDigit(string digits, bool isEan = false)
+    {
+        if (string.IsNullOrEmpty(digits) || digits.Length < 6)
+            throw new ArgumentException("Digits must be at least 6 characters", nameof(digits));
+
+        var sum = 0;
+        for (var i = 0; i < digits.Length; i++)
+        {
+            var digit = digits[i] - '0';
+            if (isEan)
+            {
+                // EAN/GTIN: odd positions (0-indexed) × 1, even positions × 3
+                sum += i % 2 == 0 ? digit : digit * 3;
+            }
+            else
+            {
+                // UPC-A: odd positions (0-indexed) × 3, even positions × 1
+                sum += i % 2 == 0 ? digit * 3 : digit;
+            }
+        }
+
+        var checkDigit = (10 - (sum % 10)) % 10;
+        return (char)('0' + checkDigit);
+    }
+
 }

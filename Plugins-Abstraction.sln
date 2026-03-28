@@ -9,6 +9,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0AB3BF05
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Famick.HomeManagement.Plugin.Abstractions.Tests", "tests\Famick.HomeManagement.Plugin.Abstractions.Tests\Famick.HomeManagement.Plugin.Abstractions.Tests.csproj", "{3EE00655-44CE-4A0F-92AB-A8232C596F4B}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{827E0CD3-B72D-47B6-A68D-7590B98EB39B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Famick.HomeManagement.Plugin.Tester", "src\Famick.HomeManagement.Plugin.Tester\Famick.HomeManagement.Plugin.Tester.csproj", "{D839C39E-A3B7-41C7-959A-65C7D99246F7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -43,11 +47,24 @@ Global
 		{3EE00655-44CE-4A0F-92AB-A8232C596F4B}.Release|x64.Build.0 = Release|Any CPU
 		{3EE00655-44CE-4A0F-92AB-A8232C596F4B}.Release|x86.ActiveCfg = Release|Any CPU
 		{3EE00655-44CE-4A0F-92AB-A8232C596F4B}.Release|x86.Build.0 = Release|Any CPU
+		{D839C39E-A3B7-41C7-959A-65C7D99246F7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D839C39E-A3B7-41C7-959A-65C7D99246F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D839C39E-A3B7-41C7-959A-65C7D99246F7}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{D839C39E-A3B7-41C7-959A-65C7D99246F7}.Debug|x64.Build.0 = Debug|Any CPU
+		{D839C39E-A3B7-41C7-959A-65C7D99246F7}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D839C39E-A3B7-41C7-959A-65C7D99246F7}.Debug|x86.Build.0 = Debug|Any CPU
+		{D839C39E-A3B7-41C7-959A-65C7D99246F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D839C39E-A3B7-41C7-959A-65C7D99246F7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D839C39E-A3B7-41C7-959A-65C7D99246F7}.Release|x64.ActiveCfg = Release|Any CPU
+		{D839C39E-A3B7-41C7-959A-65C7D99246F7}.Release|x64.Build.0 = Release|Any CPU
+		{D839C39E-A3B7-41C7-959A-65C7D99246F7}.Release|x86.ActiveCfg = Release|Any CPU
+		{D839C39E-A3B7-41C7-959A-65C7D99246F7}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{3EE00655-44CE-4A0F-92AB-A8232C596F4B} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
+		{D839C39E-A3B7-41C7-959A-65C7D99246F7} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 	EndGlobalSection
 EndGlobal

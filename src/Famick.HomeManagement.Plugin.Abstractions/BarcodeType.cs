@@ -6,5 +6,6 @@ public enum BarcodeType
     Ean8,
     QrCode,
     DataMatrix,
-    Pdf417
+    Pdf417,
+    GTIN14
 }

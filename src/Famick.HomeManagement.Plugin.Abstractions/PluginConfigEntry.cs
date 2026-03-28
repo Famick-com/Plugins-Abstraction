@@ -1,4 +1,4 @@
-namespace Famick.HomeManagement.Core.Interfaces.Plugins;
+namespace Famick.HomeManagement.Plugin.Abstractions;
 
 /// <summary>
 /// Plugin configuration entry from plugins/config.json
@@ -24,6 +24,12 @@ public class PluginConfigEntry
     /// Path to the DLL file for external plugins (relative to plugins folder)
     /// </summary>
     public string? Assembly { get; set; }
+
+    /// <summary>
+    /// Assembly-qualified type name for the plugin class (e.g. "MyCompany.Plugins.KrogerPlugin, MyCompany.Plugins.Kroger").
+    /// When specified, the loader resolves this exact type instead of scanning the assembly for an IPlugin implementation.
+    /// </summary>
+    public string? Type { get; set; }
 
     /// <summary>
     /// Display name for the plugin

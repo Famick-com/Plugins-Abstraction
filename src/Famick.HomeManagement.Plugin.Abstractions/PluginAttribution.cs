@@ -1,4 +1,4 @@
-namespace Famick.HomeManagement.Core.Interfaces.Plugins;
+namespace Famick.HomeManagement.Plugin.Abstractions;
 
 /// <summary>
 /// Attribution and licensing metadata for a plugin's data.

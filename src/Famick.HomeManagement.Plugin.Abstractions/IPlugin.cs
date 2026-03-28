@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace Famick.HomeManagement.Core.Interfaces.Plugins;
+namespace Famick.HomeManagement.Plugin.Abstractions;
 
 /// <summary>
 /// Base interface for all plugins

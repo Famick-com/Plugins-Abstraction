@@ -1,0 +1,30 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build-tester",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/src/Famick.HomeManagement.Plugin.Tester/Famick.HomeManagement.Plugin.Tester.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary;ForceNoAlign"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "pack-abstractions-local",
+            "detail": "Pack abstractions NuGet package to local source",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "pack",
+                "${workspaceFolder}/src/Famick.HomeManagement.Plugin.Abstractions/Famick.HomeManagement.Plugin.Abstractions.csproj",
+                "-o",
+                "/Users/miketherien/Projects/MyPackages"
+            ],
+            "problemMatcher": "$msCompile"
+        }
+    ]
+}

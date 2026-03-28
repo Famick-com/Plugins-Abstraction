@@ -1,4 +1,6 @@
-namespace Famick.HomeManagement.Core.Interfaces.Plugins;
+using Famick.HomeManagement.Core.Interfaces.Plugins;
+
+namespace Famick.HomeManagement.Plugin.Abstractions.ProductLookup;
 
 /// <summary>
 /// Result from a product lookup search
@@ -29,13 +31,13 @@ public class ProductLookupResult
     /// <summary>
     /// Barcode (UPC/EAN) if available - this is the barcode returned by the plugin
     /// </summary>
-    public string? Barcode { get; set; }
+    public IEnumerable<Barcode> Barcodes { get; set; } = [];
 
     /// <summary>
     /// The originally scanned/searched barcode (if different from plugin-returned barcode).
-    /// Used to store both formats (e.g., 12-digit UPC and 13-digit EAN) when they differ.
     /// </summary>
-    public string? OriginalSearchBarcode { get; set; }
+    public Barcode? OriginalSearchBarcode { get; set; }
+
 
     /// <summary>
     /// Food category (e.g., "Cheese", "Snacks", "Beverages")
