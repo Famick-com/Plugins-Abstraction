@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <PackageId>Famick.HomeManagement.Plugin.Abstractions</PackageId>
-    <Version>1.2.1</Version>
+    <Version>1.2.2</Version>
     <Authors>Famick Services LLC</Authors>
     <Description>Plugin interface contracts for Famick Home Management. Defines IPlugin, IProductLookupPlugin, and IStoreIntegrationPlugin interfaces for building product lookup and store integration plugins.</Description>
     <RepositoryUrl>https://github.com/Famick-com/Plugins-Abstraction</RepositoryUrl>

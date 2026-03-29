@@ -144,7 +144,7 @@ internal static class ConsoleRenderer
             if (!string.IsNullOrEmpty(r.BrandOwner)) PrintField("  Brand Owner", r.BrandOwner);
             foreach (var bc in r.Barcodes)
             {
-                PrintField("  Barcode", $"{bc.Data} ({bc.Type}{(bc.CheckDigit.HasValue ? $", check: {bc.CheckDigit}" : "")}{(bc.PackagingIndicator.HasValue ? $", pkg: {bc.PackagingIndicator}" : "")})");
+                PrintField("  Barcode", bc.ToString());
             }
             if (r.Categories is { Count: > 0 }) PrintField("  Categories", string.Join(", ", r.Categories));
             if (!string.IsNullOrEmpty(r.Description)) PrintField("  Description", r.Description);
@@ -276,7 +276,7 @@ internal static class ConsoleRenderer
         if (!string.IsNullOrEmpty(product.Brand)) PrintField("  Brand", product.Brand);
         foreach (var bc in product.Barcodes)
         {
-            PrintField("  Barcode", $"{bc.Data} ({bc.Type}{(bc.CheckDigit.HasValue ? $", check: {bc.CheckDigit}" : "")}{(bc.PackagingIndicator.HasValue ? $", pkg: {bc.PackagingIndicator}" : "")})");
+            PrintField("  Barcode", bc.ToString());
         }
         if (!string.IsNullOrEmpty(product.Size)) PrintField("  Size", product.Size);
         if (product.Categories is { Count: > 0 }) PrintField("  Categories", string.Join(", ", product.Categories));
@@ -380,7 +380,7 @@ internal static class ConsoleRenderer
     {
         Console.ForegroundColor = ConsoleColor.DarkGray;
         if (isBarcode && barcode != null)
-            Console.WriteLine($"Barcode search: {barcode.Data} ({barcode.Type}, check={barcode.CheckDigit})");
+            Console.WriteLine($"Barcode search: {barcode}");
         else
             Console.WriteLine($"Name search: \"{query}\"");
         Console.ResetColor();
