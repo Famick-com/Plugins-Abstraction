@@ -20,6 +20,12 @@ jobs:
         dotnet-version: '10.0.x'
         dotnet-quality: 'preview'
 
+    - name: NuGet login (OIDC → temp API key)
+      uses: NuGet/login@v1
+      id: login
+      with:
+        user: ${{ secrets.NUGET_USER }}
+
     - name: Extract version from tag
       id: version
       run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
@@ -34,4 +40,4 @@ jobs:
       run: dotnet pack src/Famick.HomeManagement.Plugin.Abstractions/Famick.HomeManagement.Plugin.Abstractions.csproj --no-build -c Release -o ./nupkg /p:Version=${{ steps.version.outputs.VERSION }}
 
     - name: Push to NuGet.org
-      run: dotnet nuget push ./nupkg/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source "https://api.nuget.org/v3/index.json" --skip-duplicate
+      run: dotnet nuget push ./nupkg/*.nupkg --api-key ${{steps.login.outputs.NUGET_API_KEY}} --source "https://api.nuget.org/v3/index.json" --skip-duplicate
