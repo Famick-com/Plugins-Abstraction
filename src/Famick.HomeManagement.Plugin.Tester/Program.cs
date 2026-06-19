@@ -1,4 +1,5 @@
 using Famick.HomeManagement.Plugin.Abstractions;
+using Famick.HomeManagement.Plugin.Abstractions.Authentication;
 using Famick.HomeManagement.Plugin.Abstractions.ProductLookup;
 using Famick.HomeManagement.Plugin.Abstractions.StoreIntegration;
 using Famick.HomeManagement.Plugin.Tester;
@@ -145,7 +146,7 @@ static async Task HandleStoreCommand(
 
         case "auth":
             if (!RequireArgs(parts, 2, "store auth <pluginId>")) return;
-            var authPlugin = FindStorePlugin(plugins, parts[1]);
+            var authPlugin = FindOAuthPlugin(plugins, parts[1]);
             if (authPlugin == null) return;
             var authUrl = authPlugin.GetAuthorizationUrl(OAuthCallbackListener.RedirectUri, Guid.NewGuid().ToString());
             Console.WriteLine();
@@ -177,7 +178,7 @@ static async Task HandleStoreCommand(
 
         case "token":
             if (!RequireArgs(parts, 3, "store token <pluginId> <code>")) return;
-            var tokenPlugin = FindStorePlugin(plugins, parts[1]);
+            var tokenPlugin = FindOAuthPlugin(plugins, parts[1]);
             if (tokenPlugin == null) return;
             var tokenResult = await tokenPlugin.ExchangeCodeForTokenAsync(parts[2], OAuthCallbackListener.RedirectUri, ct);
             if (tokenResult.Success) { tokens[parts[1]] = tokenResult; tokenCache.Save(tokens); }
@@ -186,7 +187,7 @@ static async Task HandleStoreCommand(
 
         case "refresh":
             if (!RequireArgs(parts, 3, "store refresh <pluginId> <refreshToken>")) return;
-            var refreshPlugin = FindStorePlugin(plugins, parts[1]);
+            var refreshPlugin = FindOAuthPlugin(plugins, parts[1]);
             if (refreshPlugin == null) return;
             var refreshResult = await refreshPlugin.RefreshTokenAsync(parts[2], ct);
             if (refreshResult.Success) { tokens[parts[1]] = refreshResult; tokenCache.Save(tokens); }
@@ -363,6 +364,27 @@ static IStoreIntegrationPlugin? FindStorePlugin(List<LoadedPlugin> plugins, stri
     }
 
     return plugin.StorePlugin;
+}
+
+static IOAuthClientAuthentication? FindOAuthPlugin(List<LoadedPlugin> plugins, string pluginId)
+{
+    var plugin = plugins.FirstOrDefault(p =>
+        p.SupportsOAuth &&
+        p.Config.Id.Equals(pluginId, StringComparison.OrdinalIgnoreCase));
+
+    if (plugin == null)
+    {
+        ConsoleRenderer.PrintError("OAuth", $"No OAuth-capable plugin found with ID '{pluginId}'.");
+        return null;
+    }
+
+    if (!plugin.Plugin.IsAvailable)
+    {
+        ConsoleRenderer.PrintWarning($"Plugin '{pluginId}' is loaded but not available.");
+        return null;
+    }
+
+    return plugin.OAuthPlugin;
 }
 
 static string? GetToken(Dictionary<string, OAuthTokenResult> tokens, string pluginId)

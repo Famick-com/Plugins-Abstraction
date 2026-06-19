@@ -3,6 +3,7 @@ using System.Runtime.Loader;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Famick.HomeManagement.Plugin.Abstractions;
+using Famick.HomeManagement.Plugin.Abstractions.Authentication;
 using Famick.HomeManagement.Plugin.Abstractions.ProductLookup;
 using Famick.HomeManagement.Plugin.Abstractions.StoreIntegration;
 using Microsoft.Extensions.DependencyInjection;
@@ -40,8 +41,10 @@ internal class LoadedPlugin
     public required IPlugin Plugin { get; init; }
     public bool IsProductLookup => Plugin is IProductLookupPlugin;
     public bool IsStoreIntegration => Plugin is IStoreIntegrationPlugin;
+    public bool SupportsOAuth => Plugin is IOAuthClientAuthentication;
     public IProductLookupPlugin? LookupPlugin => Plugin as IProductLookupPlugin;
     public IStoreIntegrationPlugin? StorePlugin => Plugin as IStoreIntegrationPlugin;
+    public IOAuthClientAuthentication? OAuthPlugin => Plugin as IOAuthClientAuthentication;
 }
 
 internal class PluginLoadContext : AssemblyLoadContext

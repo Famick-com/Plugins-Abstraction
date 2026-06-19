@@ -1,3 +1,4 @@
+using Famick.HomeManagement.Plugin.Abstractions.Authentication;
 using Famick.HomeManagement.Plugin.Abstractions.ProductLookup;
 using Famick.HomeManagement.Plugin.Abstractions.StoreIntegration;
 
@@ -115,7 +116,7 @@ internal static class ConsoleRenderer
             Console.WriteLine($"  {p.Config.DisplayName} ({p.Config.Id})");
             Console.ResetColor();
 
-            PrintField("    OAuth Required", caps.RequiresOAuth ? "Yes" : "No");
+            PrintField("    OAuth Link (cart)", p.SupportsOAuth ? "Yes" : "No");
             PrintField("    Product Lookup", caps.HasProductLookup ? "Yes" : "No");
             PrintField("    Store Products", caps.HasStoreProductLookup ? "Yes" : "No");
             PrintField("    Shopping Cart", caps.HasShoppingCart ? "Yes" : "No");

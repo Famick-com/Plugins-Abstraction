@@ -1,5 +1,5 @@
 using System.Text.Json;
-using Famick.HomeManagement.Plugin.Abstractions.StoreIntegration;
+using Famick.HomeManagement.Plugin.Abstractions.Authentication;
 
 namespace Famick.HomeManagement.Plugin.Tester;
 
@@ -84,10 +84,10 @@ internal class TokenCache
                 continue;
 
             var plugin = plugins.FirstOrDefault(p =>
-                p.IsStoreIntegration &&
+                p.SupportsOAuth &&
                 p.Config.Id.Equals(pluginId, StringComparison.OrdinalIgnoreCase));
 
-            if (plugin?.StorePlugin == null)
+            if (plugin?.OAuthPlugin == null)
                 continue;
 
             // If access token is still valid, reuse it
@@ -105,7 +105,7 @@ internal class TokenCache
             // Otherwise, refresh
             try
             {
-                var result = await plugin.StorePlugin.RefreshTokenAsync(entry.RefreshToken, ct);
+                var result = await plugin.OAuthPlugin.RefreshTokenAsync(entry.RefreshToken, ct);
                 if (result.Success)
                 {
                     tokens[pluginId] = result;
