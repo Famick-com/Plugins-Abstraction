@@ -6,13 +6,6 @@ namespace Famick.HomeManagement.Plugin.Abstractions.StoreIntegration;
 public class StoreIntegrationCapabilities
 {
     /// <summary>
-    /// Whether OAuth authentication is required to use this plugin.
-    /// If false, the plugin works without authentication (e.g., public APIs).
-    /// If true, users must complete OAuth flow before using the plugin.
-    /// </summary>
-    public bool RequiresOAuth { get; set; }
-
-    /// <summary>
     /// Can search products by name/barcode
     /// </summary>
     public bool HasProductLookup { get; set; }
@@ -53,22 +46,23 @@ public class StoreIntegrationCapabilities
     public static StoreIntegrationCapabilities None => new();
 
     /// <summary>
-    /// Creates a capabilities instance for plugins that only support product lookup (no OAuth required)
+    /// Creates a capabilities instance for plugins that only support product lookup
+    /// (client credentials; no user OAuth link)
     /// </summary>
     public static StoreIntegrationCapabilities ProductLookupOnly => new()
     {
-        RequiresOAuth = false,
         HasProductLookup = true,
         HasStoreProductLookup = true,
         CanDownloadProductImages = true
     };
 
     /// <summary>
-    /// Creates a capabilities instance for plugins with full feature support (OAuth required)
+    /// Creates a capabilities instance for plugins with full feature support, including
+    /// shopping cart (which requires the user OAuth link via
+    /// <see cref="Authentication.IOAuthClientAuthentication"/>)
     /// </summary>
     public static StoreIntegrationCapabilities Full => new()
     {
-        RequiresOAuth = true,
         HasProductLookup = true,
         HasStoreProductLookup = true,
         HasShoppingCart = true,

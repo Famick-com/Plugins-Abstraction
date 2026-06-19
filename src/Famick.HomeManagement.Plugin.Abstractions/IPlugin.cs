@@ -35,6 +35,14 @@ public interface IPlugin
     PluginAttribution? Attribution { get; }
 
     /// <summary>
+    /// Optional documentation / configuration-help URL for this plugin
+    /// (e.g., where to obtain an API key or register an app). Surfaced in the
+    /// plugin settings UI. May be overridden per-entry by the <c>helpUrl</c>
+    /// field in <c>plugins/config.json</c>. Null if the plugin has no help page.
+    /// </summary>
+    string? HelpUrl { get; }
+
+    /// <summary>
     /// Initialize the plugin with its configuration section from plugins/config.json
     /// Each plugin defines its own configuration schema
     /// </summary>

@@ -1,4 +1,4 @@
-namespace Famick.HomeManagement.Plugin.Abstractions.StoreIntegration;
+namespace Famick.HomeManagement.Plugin.Abstractions.Authentication;
 
 /// <summary>
 /// Result from an OAuth token exchange or refresh operation

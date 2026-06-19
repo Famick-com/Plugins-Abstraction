@@ -276,6 +276,7 @@ public interface IPlugin
     string Version { get; }
     bool IsAvailable { get; }
     PluginAttribution? Attribution { get; }
+    string? HelpUrl { get; }
     Task InitAsync(JsonElement? pluginConfig, CancellationToken ct = default);
 }
 ```
@@ -287,6 +288,7 @@ public interface IPlugin
 | `Version` | Semantic version string for the plugin |
 | `IsAvailable` | Whether the plugin is ready to process requests. Return `false` if required configuration (like an API key) is missing. |
 | `Attribution` | Licensing and attribution metadata. Return `null` only if the plugin uses no external data that requires attribution. See [Attribution](#attribution). |
+| `HelpUrl` | Optional documentation / config-help URL (e.g., where to obtain an API key). Shown in the plugin settings UI. May be overridden per-entry by the `helpUrl` field in `plugins/config.json`. Return `null` if there is no help page. |
 | `InitAsync` | Called once at startup with the plugin's `config` section from `plugins/config.json` as a `JsonElement`. Parse your configuration here. |
 
 ### InitAsync
@@ -466,7 +468,7 @@ cp bin/Release/net10.0/MyNutritionPlugin.dll /path/to/app/plugins/
 
 ## Store Integration Plugins
 
-Store integration plugins implement `IStoreIntegrationPlugin` and provide OAuth-based connections to grocery store APIs (Kroger, Walmart, etc.) for pricing, availability, store location lookup, and shopping cart management.
+Store integration plugins implement `IStoreIntegrationPlugin` and connect to grocery store APIs (Kroger, Walmart, etc.) for pricing, availability, and store location lookup using app-level client credentials (no user OAuth link). Plugins that also support shopping-cart write additionally implement the optional `IOAuthClientAuthentication` interface for the user authorization-code flow.
 
 For a complete implementation example, see the [Plugin-Kroger](https://github.com/Famick-com/Plugin-Kroger) repository.
 
