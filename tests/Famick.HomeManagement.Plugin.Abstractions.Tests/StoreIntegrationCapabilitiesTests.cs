@@ -71,6 +71,7 @@ public class StoreIntegrationCapabilitiesTests
         public bool IsAvailable => true;
         public PluginAttribution? Attribution => null;
         public string? HelpUrl => null;
+        public Guid SourceId => Guid.Empty;
         public StoreIntegrationCapabilities Capabilities => StoreIntegrationCapabilities.None;
 
         public Task InitAsync(System.Text.Json.JsonElement? pluginConfig, CancellationToken ct = default) => Task.CompletedTask;

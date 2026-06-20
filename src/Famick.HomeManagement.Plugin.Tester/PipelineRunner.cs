@@ -11,7 +11,8 @@ internal static class PipelineRunner
         ProductLookupSearchType searchType,
         Barcode? parsedBarcode,
         IReadOnlyList<LoadedPlugin> plugins,
-        CancellationToken ct)
+        CancellationToken ct,
+        ProductLookupLocation? location = null)
     {
         var lookupPlugins = plugins
             .Where(p => p.IsProductLookup && p.Plugin.IsAvailable)
@@ -28,11 +29,11 @@ internal static class PipelineRunner
 
                 if (parsedBarcode != null && p.LookupPlugin is not null)
                 {
-                    results = await p.LookupPlugin.LookupAsync(parsedBarcode, maxResults: 20, ct: ct);
+                    results = await p.LookupPlugin.LookupAsync(parsedBarcode, maxResults: 20, location: location, ct: ct);
                 }
                 else if (searchType == ProductLookupSearchType.Name && p.LookupPlugin is not null)
                 {
-                    results = await p.LookupPlugin.LookupAsync(query, maxResults: 20, ct: ct);
+                    results = await p.LookupPlugin.LookupAsync(query, maxResults: 20, location: location, ct: ct);
                 }
                 else
                 {

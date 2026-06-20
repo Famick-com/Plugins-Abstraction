@@ -43,6 +43,16 @@ public interface IPlugin
     string? HelpUrl { get; }
 
     /// <summary>
+    /// Stable, author-assigned identity for this plugin, independent of the
+    /// operator-assigned config id. Plugins that share an external data source
+    /// — e.g. a store-integration plugin and its companion product-lookup plugin
+    /// — declare the SAME <see cref="SourceId"/>, so a store location produced by
+    /// one can be recognized as relevant by the other (see
+    /// <see cref="ProductLookup.ProductLookupLocation"/>).
+    /// </summary>
+    Guid SourceId { get; }
+
+    /// <summary>
     /// Initialize the plugin with its configuration section from plugins/config.json
     /// Each plugin defines its own configuration schema
     /// </summary>

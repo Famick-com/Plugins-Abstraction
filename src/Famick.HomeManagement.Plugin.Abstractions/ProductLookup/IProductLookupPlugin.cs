@@ -14,11 +14,15 @@ public interface IProductLookupPlugin : IPlugin
     /// </summary>
     /// <param name="barcode">The barcode to search</param>
     /// <param name="maxResults">The maximum number of items to return</param>
+    /// <param name="location">Optional store-location context. A plugin uses it only
+    /// when <see cref="ProductLookupLocation.Source"/> matches its own
+    /// <see cref="IPlugin.SourceId"/>; otherwise it ignores it.</param>
     /// <param name="ct">Cancellation token</param>
     /// <returns>List of found items</returns>
     Task<List<ProductLookupResult>> LookupAsync(
         Barcode barcode,
         int maxResults = 20,
+        ProductLookupLocation? location = null,
         CancellationToken ct = default);
 
     /// <summary>
@@ -27,11 +31,15 @@ public interface IProductLookupPlugin : IPlugin
     /// </summary>
     /// <param name="query">The search query (barcode or product name)</param>
     /// <param name="maxResults">Maximum number of results to return</param>
+    /// <param name="location">Optional store-location context. A plugin uses it only
+    /// when <see cref="ProductLookupLocation.Source"/> matches its own
+    /// <see cref="IPlugin.SourceId"/>; otherwise it ignores it.</param>
     /// <param name="ct">Cancellation token</param>
     /// <returns>List of lookup results from this plugin's external source</returns>
     Task<List<ProductLookupResult>> LookupAsync(
         string searchTerm,
         int maxResults = 20,
+        ProductLookupLocation? location = null,
         CancellationToken ct = default);
 
     /// <summary>

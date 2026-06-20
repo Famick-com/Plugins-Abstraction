@@ -83,6 +83,10 @@ while (true)
         {
             await HandleStoreCommand(trimmed[6..].Trim(), plugins, tokens, tokenCache, cts.Token);
         }
+        else if (lower.StartsWith("lookuploc "))
+        {
+            await HandleLookupLocation(trimmed[10..].Trim(), plugins, cts.Token);
+        }
         else
         {
             await HandleLookup(trimmed, plugins, cts.Token);
@@ -112,18 +116,46 @@ static string? ParseConfigArg(string[] args)
     return null;
 }
 
-static async Task HandleLookup(string input, List<LoadedPlugin> plugins, CancellationToken ct)
+static async Task HandleLookup(string input, List<LoadedPlugin> plugins, CancellationToken ct, ProductLookupLocation? location = null)
 {
     var isBarcode = BarcodeParser.TryParse(input, out var barcode);
     var searchType = isBarcode ? ProductLookupSearchType.Barcode : ProductLookupSearchType.Name;
     var query = input;
 
     ConsoleRenderer.PrintSearchType(query, isBarcode, barcode);
+    if (location != null)
+    {
+        Console.ForegroundColor = ConsoleColor.DarkGray;
+        Console.WriteLine($"  Location context: source {location.Source}, locationId {location.ExternalLocationId}");
+        Console.ResetColor();
+    }
 
     var (context, lookupMs, enrichMs) = await PipelineRunner.RunAsync(
-        query, searchType, barcode, plugins, ct);
+        query, searchType, barcode, plugins, ct, location);
 
     ConsoleRenderer.PrintLookupResults(context, lookupMs, enrichMs);
+}
+
+// "lookuploc <sourcePluginId> <locationId> <term...>" — run the lookup pipeline
+// with a store-location context. Only the plugin whose SourceId matches uses it.
+static async Task HandleLookupLocation(string input, List<LoadedPlugin> plugins, CancellationToken ct)
+{
+    var parts = input.Split(' ', 3, StringSplitOptions.RemoveEmptyEntries);
+    if (parts.Length < 3)
+    {
+        ConsoleRenderer.PrintWarning("Usage: lookuploc <sourcePluginId> <locationId> <term>");
+        return;
+    }
+
+    var source = plugins.FirstOrDefault(p => p.Config.Id.Equals(parts[0], StringComparison.OrdinalIgnoreCase));
+    if (source == null)
+    {
+        ConsoleRenderer.PrintError("lookuploc", $"No plugin found with id '{parts[0]}'.");
+        return;
+    }
+
+    var location = new ProductLookupLocation { Source = source.Plugin.SourceId, ExternalLocationId = parts[1] };
+    await HandleLookup(parts[2], plugins, ct, location);
 }
 
 static async Task HandleStoreCommand(
@@ -212,8 +244,8 @@ static async Task HandleStoreCommand(
             if (!RequireArgs(parts, 4, "store search <pluginId> <locationId> <query>")) return;
             var searchPlugin = FindStorePlugin(plugins, parts[1]);
             if (searchPlugin == null) return;
-            var accessToken = GetToken(tokens, parts[1]);
-            if (accessToken == null) return;
+            // Product reads work with client credentials; use a user token only if present.
+            var accessToken = GetTokenOrNull(tokens, parts[1]);
             var searchQuery = string.Join(' ', parts[3..]);
             var products = await searchPlugin.SearchProductsAsync(accessToken, parts[2], searchQuery, ct: ct);
             ConsoleRenderer.PrintStoreProducts(products);
@@ -223,8 +255,7 @@ static async Task HandleStoreCommand(
             if (!RequireArgs(parts, 4, "store product <pluginId> <locationId> <productId>")) return;
             var prodPlugin = FindStorePlugin(plugins, parts[1]);
             if (prodPlugin == null) return;
-            var prodToken = GetToken(tokens, parts[1]);
-            if (prodToken == null) return;
+            var prodToken = GetTokenOrNull(tokens, parts[1]);
             var product = await prodPlugin.GetProductAsync(prodToken, parts[2], parts[3], ct);
             if (product != null) ConsoleRenderer.PrintStoreProduct(product);
             else ConsoleRenderer.PrintWarning("Product not found.");
@@ -234,7 +265,7 @@ static async Task HandleStoreCommand(
             if (!RequireArgs(parts, 4, "store barcode <pluginId> <locationId> <barcode>")) return;
             var bcPlugin = FindStorePlugin(plugins, parts[1]);
             if (bcPlugin == null) return;
-            var bcToken = GetToken(tokens, parts[1]);
+            var bcToken = GetTokenOrNull(tokens, parts[1]);
             var barcode = BarcodeParser.Parse(parts[3]);
             var bcProduct = await bcPlugin.LookupProductByBarcodeAsync(bcToken, parts[2], barcode, ct);
             if (bcProduct != null) ConsoleRenderer.PrintStoreProduct(bcProduct);
@@ -395,6 +426,13 @@ static string? GetToken(Dictionary<string, OAuthTokenResult> tokens, string plug
     ConsoleRenderer.PrintWarning($"No token for '{pluginId}'. Use 'store auth' and 'store token' first.");
     return null;
 }
+
+// Returns a user token if one exists, otherwise null (no warning). Product
+// reads work with client credentials, so a null token is fine.
+static string? GetTokenOrNull(Dictionary<string, OAuthTokenResult> tokens, string pluginId)
+    => tokens.TryGetValue(pluginId, out var token) && token.Success && !string.IsNullOrEmpty(token.AccessToken)
+        ? token.AccessToken
+        : null;
 
 static bool RequireArgs(string[] parts, int required, string usage)
 {

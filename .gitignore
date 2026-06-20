@@ -2,3 +2,4 @@ bin/
 obj/
 src/Famick.HomeManagement.Plugin.Tester/plugins.json
 .github/workflows/publish.yml
+.DS_Store
